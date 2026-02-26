@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000",
+      "value": "https://recipevault-api.onrender.com",
       "type": "string"
     },
     {
@@ -18,6 +18,32 @@
     }
   ],
   "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Confirms the API is live and running on Render. Returns 200 OK with a status message. No authentication required."
+          },
+          "response": [
+            {
+              "name": "200 OK – API Running",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"RecipeVault API is running\"\n}"
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Auth",
       "item": [
