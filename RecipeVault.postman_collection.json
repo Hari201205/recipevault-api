@@ -1,0 +1,461 @@
+{
+  "info": {
+    "_postman_id": "recipevault-api-collection",
+    "name": "RecipeVault API",
+    "description": "Full CRUD documentation for the RecipeVault RESTful API.\n\nFlow:\n1. Register a user\n2. Login to get a JWT token\n3. Set the token in the 'token' collection variable\n4. Use all protected endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "PASTE_YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hari Sharma\",\n  \"email\": \"hari@example.com\",\n  \"password\": \"SecurePass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Creates a new user account. Password is hashed with bcrypt before storage. Returns 201 on success."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"User registered successfully.\",\n  \"userId\": 1\n}"
+            },
+            {
+              "name": "409 Email Already Exists",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"error\": \"An account with that email already exists.\"\n}"
+            },
+            {
+              "name": "400 Missing Fields",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"Name, email, and password are required.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hari@example.com\",\n  \"password\": \"SecurePass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticates a user and returns a signed JWT token (expires in 24h). Copy the token and set it as the 'token' collection variable."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Login successful.\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": 1,\n    \"name\": \"Hari Sharma\",\n    \"email\": \"hari@example.com\"\n  }\n}"
+            },
+            {
+              "name": "401 Invalid Credentials",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"error\": \"Invalid email or password.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Recipes",
+      "item": [
+        {
+          "name": "Get All Recipes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            },
+            "description": "Returns all recipes belonging to the authenticated user, ordered by newest first. Returns 200 with an array."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"user_id\": 1,\n    \"title\": \"Classic Pasta Carbonara\",\n    \"description\": \"A creamy Roman pasta dish\",\n    \"category\": \"Dinner\",\n    \"prep_time\": 10,\n    \"cook_time\": 20,\n    \"servings\": 4,\n    \"created_at\": \"2026-02-26T12:00:00.000Z\",\n    \"updated_at\": \"2026-02-26T12:00:00.000Z\"\n  }\n]"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"error\": \"Access denied. No token provided.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Recipe by ID (with ingredients)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            },
+            "description": "Returns a single recipe including its full ingredient list. Returns 404 if not found or not owned by the user."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"user_id\": 1,\n  \"title\": \"Classic Pasta Carbonara\",\n  \"description\": \"A creamy Roman pasta dish\",\n  \"category\": \"Dinner\",\n  \"prep_time\": 10,\n  \"cook_time\": 20,\n  \"servings\": 4,\n  \"created_at\": \"2026-02-26T12:00:00.000Z\",\n  \"updated_at\": \"2026-02-26T12:00:00.000Z\",\n  \"ingredients\": [\n    {\n      \"id\": 1,\n      \"recipe_id\": 1,\n      \"name\": \"Spaghetti\",\n      \"quantity\": 400,\n      \"unit\": \"g\",\n      \"notes\": null\n    }\n  ]\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Recipe not found.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Classic Pasta Carbonara\",\n  \"description\": \"A creamy Roman pasta dish with eggs and pecorino\",\n  \"category\": \"Dinner\",\n  \"prep_time\": 10,\n  \"cook_time\": 20,\n  \"servings\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes"]
+            },
+            "description": "Creates a new recipe. Title is required. Returns 201 with the new recipe ID."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"Recipe created successfully.\",\n  \"recipeId\": 1\n}"
+            },
+            {
+              "name": "400 Missing Title",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"Title is required.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Recipe",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Classic Pasta Carbonara (Updated)\",\n  \"description\": \"Updated description with extra tips\",\n  \"category\": \"Dinner\",\n  \"prep_time\": 15,\n  \"cook_time\": 25,\n  \"servings\": 6\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            },
+            "description": "Updates an existing recipe by ID. Only the owner can update. Returns 404 if not found."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Recipe updated successfully.\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Recipe not found.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Recipe",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1"]
+            },
+            "description": "Deletes a recipe and all its ingredients (ON DELETE CASCADE). Returns 404 if not found or not owned by user."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Recipe deleted successfully.\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Recipe not found.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Ingredients for Recipe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1/ingredients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1", "ingredients"]
+            },
+            "description": "Lists all ingredients for a specific recipe. Confirms recipe belongs to the authenticated user."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": 1,\n    \"recipe_id\": 1,\n    \"name\": \"Spaghetti\",\n    \"quantity\": 400,\n    \"unit\": \"g\",\n    \"notes\": null,\n    \"created_at\": \"2026-02-26T12:00:00.000Z\"\n  },\n  {\n    \"id\": 2,\n    \"recipe_id\": 1,\n    \"name\": \"Eggs\",\n    \"quantity\": 4,\n    \"unit\": \"large\",\n    \"notes\": \"Room temperature\",\n    \"created_at\": \"2026-02-26T12:00:00.000Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Add Ingredient to Recipe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Spaghetti\",\n  \"quantity\": 400,\n  \"unit\": \"g\",\n  \"notes\": \"Use bronze-die pasta for best texture\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recipes/1/ingredients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "recipes", "1", "ingredients"]
+            },
+            "description": "Adds a new ingredient to a recipe. Name is required. Returns 201 with the new ingredient ID."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"message\": \"Ingredient added successfully.\",\n  \"ingredientId\": 1\n}"
+            },
+            {
+              "name": "400 Missing Name",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"Ingredient name is required.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ingredients",
+      "item": [
+        {
+          "name": "Get Ingredient by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ingredients", "1"]
+            },
+            "description": "Returns a single ingredient by ID. Verifies via JOIN that the parent recipe belongs to the user."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": 1,\n  \"recipe_id\": 1,\n  \"name\": \"Spaghetti\",\n  \"quantity\": 400,\n  \"unit\": \"g\",\n  \"notes\": \"Use bronze-die pasta for best texture\",\n  \"created_at\": \"2026-02-26T12:00:00.000Z\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Ingredient not found.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Ingredient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Spaghetti\",\n  \"quantity\": 500,\n  \"unit\": \"g\",\n  \"notes\": \"Updated: use De Cecco brand\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ingredients", "1"]
+            },
+            "description": "Updates an ingredient by ID. Only works if the parent recipe belongs to the user. Returns 404 if not found."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Ingredient updated successfully.\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Ingredient not found.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Ingredient",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ingredients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ingredients", "1"]
+            },
+            "description": "Deletes a single ingredient by ID. Verifies ownership via the parent recipe. Returns 404 if not found."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Ingredient deleted successfully.\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Ingredient not found.\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
